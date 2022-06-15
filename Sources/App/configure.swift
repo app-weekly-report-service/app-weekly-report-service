@@ -14,7 +14,11 @@ public func configure(_ app: Application) throws {
         password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
         database: Environment.get("DATABASE_NAME") ?? "app_weekly_report_service"
     ), as: .psql)
-
+    
+    /// 创建 User 表
+    app.migrations.add(CreateUserMigration())
+    /// 等待迁移完毕
+    try app.autoMigrate().wait()
 
     // register routes
     try routes(app)
