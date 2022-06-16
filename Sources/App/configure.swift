@@ -19,6 +19,9 @@ public func configure(_ app: Application) throws {
     app.migrations.add(CreateUserMigration())
     /// 等待迁移完毕
     try app.autoMigrate().wait()
+    
+    /// 设置密码使用`bcrypt`进行加密
+    app.passwords.use(.bcrypt)
 
     // register routes
     try routes(app)
