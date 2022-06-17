@@ -14,14 +14,7 @@ struct LoginController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         let loginGroup = routes.grouped("login")
         /// 注册 POST /login 路由进行登录
-        loginGroup.post { req async throws in
-            do {
-                return try await login(req)
-            } catch(let e) {
-                let abort = e as? AbortError ?? Abort(.internalServerError)
-                return AppResponse<String>(failure: abort.status.code, message: abort.reason)
-            }
-        }
+        loginGroup.onRoute(.POST, use: login)
     }
     
     func login(_ req: Request) async throws -> AppResponse<String> {
