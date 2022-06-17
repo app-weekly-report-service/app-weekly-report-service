@@ -41,16 +41,20 @@ final class LoginTests: XCTestCase {
         
         /// 验证用户名 不是字符串类型
         let res1 = try await login(123, "test123", app)
-        XCTAssertEqual(try res1.content.decode(ErrorReason.self).reason, "username is not a(n) String")
+        XCTAssertEqual(try res1.content.decode(AppResponse<String>.self).message, "username is not a(n) String")
         
         let username: String? = nil
         /// 验证用户名 不存在
         let res2 = try await login(username, "test123", app)
-        XCTAssertEqual(try res2.content.decode(ErrorReason.self).reason, "username is required")
+        XCTAssertEqual(try res2.content.decode(AppResponse<String>.self).message, "username is required")
         
-        /// 验证用户名 不能为空字符串
+        /// 验证用户名 必须长度为6位
         let res3 = try await login("", "test123", app)
-        XCTAssertEqual(try res3.content.decode(ErrorReason.self).reason, "username is empty")
+        XCTAssertEqual(try res3.content.decode(AppResponse<String>.self).message, "username 必须是 6 位数，不足在前面补 0!")
+        
+        /// 验证用户名 必须[0-9]组成
+        let res4 = try await login("a12345", "test123", app)
+        XCTAssertEqual(try res4.content.decode(AppResponse<String>.self).message, "username 必须 [0-9] 数组组成!")
     }
     
     /// 登录请求信息
