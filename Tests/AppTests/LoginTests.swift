@@ -7,6 +7,7 @@
 
 @testable import App
 import XCTVapor
+import FluentKit
 
 final class LoginTests: XCTestCase {
     /// 测试登陆
@@ -17,20 +18,33 @@ final class LoginTests: XCTestCase {
         /// 对密码进行加密
         let password = try await app.password.async.hash("test")
         /// 创建测试账号
-        let testUser = User(username: "test", password: password)
+        let testUser = User(username: "000000", password: password)
         try await testUser.save(on: app.db)
         
         /// 登录成功
-        let resSuccess = try await login("test", "test", app)
+        let resSuccess = try await login("000000", "test", app)
         /// 登录失败
-        let resFailure = try await login("test", "test123", app)
+        let resFailure = try await login("000000", "test123", app)
         
         /// 删除测试账号
         try await testUser.delete(on: app.db)
-        
+                
         /// 验证登陆结果
         XCTAssertEqual(resSuccess.status.code, 200)
-        XCTAssertEqual(resFailure.status.code, LoginAbort().passwordError.code.errorCode)
+        
+        /// 测试登录成功之后 Token 已经保存在数据库了
+        guard let tokenString = try resSuccess.content.decode(AppResponse<String>.self).data else {
+            XCTFail("登录成功没有返回 Token")
+            return
+        }
+        
+        guard let token = try await Token.query(on: app.db).filter(\.$token == tokenString).first() else {
+            XCTFail("Token 没有保存在数据库中！")
+            return
+        }
+        /// 删除 Token
+        try await token.delete(on: app.db)
+        XCTAssertEqual(try resFailure.content.decode(AppResponse<String>.self).code, LoginAbort().passwordError.code.errorCode)
         
     }
     

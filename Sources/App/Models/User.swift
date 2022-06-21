@@ -7,6 +7,7 @@
 
 import Foundation
 import Fluent
+import Vapor
 
 /// 用户表
 final class User: Model {
@@ -39,6 +40,10 @@ final class User: Model {
     @Timestamp(key: "update_time", on: .update)
     var updateTime: Date?
     
+    /// 是否是管理员
+    @Field(key: "is_admin")
+    var isAdmin: Bool
+    
     /// 默认初始化 必须要实现
     init() {}
     
@@ -47,9 +52,17 @@ final class User: Model {
     ///   - username: 用户名
     ///   - password: 密码
     ///   - nikeName: 昵称
-    init(username: String, password: String, nikeName: String? = nil) {
+    ///   - isAdmin: 是否是管理员
+    init(username: String,
+         password: String,
+         nikeName: String? = nil,
+         isAdmin: Bool = false) {
         self.username = username
         self.password = password
         self.nikeName = nikeName ?? username
+        self.isAdmin = isAdmin
     }
 }
+
+/// 支持 User 可以进行登录
+extension User: Authenticatable {}

@@ -27,40 +27,28 @@ struct LoginController: RouteCollection {
         guard try await req.password.async.verify(content.password, created: user.password) else {
             throw LoginAbort().passwordError.abort
         }
+        /// 生成的 Token 字符串
+        let tokenString = [UInt8].random(count: 32).base64String()
+        /// 创建 Token 数据库实例
+        let token = Token(userId: try user.requireID(), token: tokenString)
+        /// 保存 Token 到数据库
+        try await token.save(on: req.db)
+        /// 设置 Token 失效时间自动执行删除任务
+        try await req.queue.dispatch(DeleteTokenJob.self, .
+                                     init(tokenId: try token.requireID()),
+                                     maxRetryCount: 3,
+                                     delayUntil: token.expiredTime)
         /// 用户存在 代表登陆成功
-        return .init(success: [UInt8].random(count: 32).base64String())
+        return .init(success: tokenString)
     }
 }
 
 /// 解析登陆接口参数信息
-struct UserRequestContent: Content {
+struct UserRequestContent: UserContent {
     /// 用户名
     let username: String
     /// 密码
     let password: String
 }
 
-extension UserRequestContent: Validatable {
-    static func validations(_ validations: inout Validations) {
-        /// 要求 username 必须是字符串类型 不能为空 字段必须存在
-        validations.add("username", as: String.self, is: .usernameValidator, required: true)
-        /// 要求 password 必须是字符串类型 不能为空 字段必须存在
-        validations.add("password", as: String.self, is: !.empty, required: true)
-    }
-}
-
-extension Validator {
-    /// 新建一个 Validator<T> 对象 用于可以支持自定义验证
-    static var usernameValidator: Validator<String> {
-        .init { data in
-            guard data.count == 6 else {
-                return AppValidatorResult(failure: "必须是 6 位数，不足在前面补 0!")
-            }
-            guard let _ = Int(data) else {
-                return AppValidatorResult(failure: "必须 [0-9] 数组组成!")
-            }
-            return AppValidatorResult(success: nil)
-        }
-    }
-}
 
