@@ -12,7 +12,7 @@ import Vapor
 struct UserController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         /// 添加 管理员中间件
-        routes.admin.group("user") { user in
+        routes.admin.grouped("admin").group("user") { user in
             /// 新增用户
             user.post(use: create)
             
@@ -22,6 +22,12 @@ struct UserController: RouteCollection {
                 /// 删除用户
                 user.delete(use: delete)
             }
+        }
+        
+        /// /user 管理
+        routes.token.group("user") { user in
+            /// 更新用户信息
+            user.put(use: update)
         }
     }
     
@@ -71,6 +77,18 @@ struct UserController: RouteCollection {
         try await user.delete(on: req.db)
         return .init(success: true)
     }
+    
+    /// 更新用户
+    func update(_ req: Request) async throws -> AppResponse<Bool> {
+        /// 获取当前授权的用户
+        let user = try req.auth.require(User.self)
+        try UpdateUserContent.validate(content: req)
+        let content = try req.content.decode(UpdateUserContent.self)
+        /// 更新用户信息
+        user.nikeName = content.nikeName
+        try await user.save(on: req.db)
+        return .init(success: true)
+    }
 }
 
 extension UserController {
@@ -87,6 +105,17 @@ extension UserController {
         
         static func validations(_ validations: inout Validations) {
             validations.add("password", as: String.self, is: !.empty, required: true)
+        }
+    }
+}
+
+extension UserController {
+    struct UpdateUserContent: Content, Validatable {
+        /// 用户名
+        let nikeName: String
+        
+        static func validations(_ validations: inout Validations) {
+            validations.add("nikeName", as: String.self, is: !.empty, required: true)
         }
     }
 }
