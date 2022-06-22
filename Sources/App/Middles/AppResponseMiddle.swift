@@ -25,9 +25,3 @@ struct AppResponseMiddle: AsyncMiddleware {
     }
 }
 
-extension RoutesBuilder {
-    /// AppResponse 路由中间件
-    var response: RoutesBuilder {
-        self.grouped(AppResponseMiddle())
-    }
-}

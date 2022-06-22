@@ -11,7 +11,7 @@ import Vapor
 /// 密码管理
 struct PasswordController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
-        let password = routes.response.token.grouped("password")
+        let password = routes.token.grouped("password")
         /// 设置 PUT 方式来修改密码
         password.put(use: reset)
     }

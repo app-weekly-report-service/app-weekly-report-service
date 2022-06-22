@@ -44,4 +44,6 @@ public func configure(_ app: Application) throws {
 
     app.commands.use(AdminGroupCommand(), as: "admin")
     
+    /// 注册系统拦取异常封装为 AppResponse 返回
+    app.middleware.use(AppResponseMiddle())
 }
