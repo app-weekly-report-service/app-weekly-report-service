@@ -43,4 +43,5 @@ public func configure(_ app: Application) throws {
     
 
     app.commands.use(AdminGroupCommand(), as: "admin")
+    
 }

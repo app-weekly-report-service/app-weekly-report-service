@@ -12,9 +12,9 @@ import FluentKit
 /// 管理用户登录
 struct LoginController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
-        let loginGroup = routes.grouped("login")
+        let loginGroup = routes.response.grouped("login")
         /// 注册 POST /login 路由进行登录
-        loginGroup.onRoute(.POST, use: login)
+        loginGroup.post(use: login)
     }
     
     func login(_ req: Request) async throws -> AppResponse<String> {

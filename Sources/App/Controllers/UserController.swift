@@ -12,7 +12,7 @@ import Vapor
 struct UserController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         /// 添加 管理员中间件
-        routes.admin.group("user") { user in
+        routes.response.admin.group("user") { user in
             /// 新增用户
             user.post(use: create)
             
