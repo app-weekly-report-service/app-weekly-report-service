@@ -27,6 +27,8 @@ public func configure(_ app: Application) throws {
     app.migrations.add(JobModelMigrate())
     /// 新增 `is_admin`字段
     app.migrations.add(UpdateUserMigration())
+    /// 创建 Articles 表
+    app.migrations.add(CreateArticlesMigration())
     /// 等待迁移完毕
     try app.autoMigrate().wait()
     

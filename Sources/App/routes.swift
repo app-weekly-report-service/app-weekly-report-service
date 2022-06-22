@@ -8,4 +8,6 @@ func routes(_ app: Application) throws {
     try app.register(collection: PasswordController())
     /// 用户管理
     try app.register(collection: UserController())
+    /// 管理技术文章
+    try app.register(collection: ArticlesController())
 }

@@ -99,3 +99,15 @@ struct PasswordAbort: ModuleError {
         .init(code: .init(model: self, code: 2), message: "之前密码不正确!")
     }
 }
+
+struct ArticleAbort: ModuleError {
+    let code: UInt = 500000
+    
+    var notId: AppError {
+        .init(code: .init(model: self, code: 1), message: "请求路径缺少:id字段!")
+    }
+    
+    func notExit(_ id: UUID) -> AppError {
+        .init(code: .init(model: self, code: 2), message: "\(id) 不存在!")
+    }
+}
