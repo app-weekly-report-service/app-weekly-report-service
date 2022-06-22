@@ -7,6 +7,7 @@
 
 import Foundation
 import Vapor
+import FluentKit
 
 /// 管理用户
 struct UserController: RouteCollection {
@@ -39,6 +40,10 @@ struct UserController: RouteCollection {
         let content = try req.content.decode(CreateUserContent.self)
         /// 加密密码
         let password = try await req.password.async.hash(content.password)
+        guard try await User.query(on: req.db).filter(\User.$username == content.username).count() == 0 else {
+            /// 新增的用户已经存在
+            throw UserAbort().exit(content.username).abort
+        }
         /// 创建用户
         let user = User(username: content.username, password: password)
         try await user.save(on: req.db)
