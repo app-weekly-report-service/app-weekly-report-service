@@ -87,18 +87,21 @@ struct ArticlesController: RouteCollection {
     func deletes(_ req: Request) async throws -> AppResponse<Bool> {
         try DeleteArtilesContent.validate(content: req)
         let content = try req.content.decode(DeleteArtilesContent.self)
-        try await withThrowingTaskGroup(of: Void.self, body: { taskGroup in
-            content.ids.forEach { id in
-                taskGroup.addTask {
-                    /// 查询文章是否存在
-                    guard let article = try await Articles.find(id, on: req.db) else {
-                        throw ArticleAbort().notExit(id).abort
+        try await req.db.transaction({ database in
+            try await withThrowingTaskGroup(of: Void.self, body: { taskGroup in
+                content.ids.forEach { id in
+                    taskGroup.addTask {
+                        /// 查询文章是否存在
+                        guard let article = try await Articles.find(id, on: database) else {
+                            throw ArticleAbort().notExit(id).abort
+                        }
+                        try await article.delete(on: database)
                     }
-                    try await article.delete(on: req.db)
                 }
-            }
-            try await taskGroup.waitForAll()
+                try await taskGroup.waitForAll()
+            })
         })
+        
         return .init(success: true)
     }
 }
