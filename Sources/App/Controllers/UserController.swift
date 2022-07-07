@@ -29,6 +29,7 @@ struct UserController: RouteCollection {
         routes.token.group("user") { user in
             /// 更新用户信息
             user.put(use: update)
+            user.get(use: getUserInfo)
         }
     }
     
@@ -94,6 +95,11 @@ struct UserController: RouteCollection {
         try await user.save(on: req.db)
         return .init(success: true)
     }
+    
+    func getUserInfo(_ req: Request) async throws -> AppResponse<UserInfo> {
+        let user = try req.auth.require(User.self)
+        return .init(success: .init(nikeName: user.nikeName, isAdmin: user.isAdmin))
+    }
 }
 
 extension UserController {
@@ -122,5 +128,12 @@ extension UserController {
         static func validations(_ validations: inout Validations) {
             validations.add("nikeName", as: String.self, is: !.empty, required: true)
         }
+    }
+}
+
+extension UserController {
+    struct UserInfo: Content {
+        let nikeName: String
+        let isAdmin: Bool
     }
 }
